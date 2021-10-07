@@ -26,6 +26,7 @@ ui <- fluidPage(
             fileInput("file1", "Choose input data"),
             uiOutput("category1"),          
             uiOutput("category2"),
+            fileInput("file2", "Choose test data"),
             uiOutput("balanceType"),
             checkboxInput("scale","scaled data",FALSE),
             
@@ -320,19 +321,18 @@ server <- function(input, output) {
         data= myData()
         data <- na.omit(data)
         data[] <- lapply(data, function(x) as.numeric(x))
-        standardized.X <- data[,-21]
+        standardized.X <- data[,-2]
         if(input$scale == TRUE){standardized.X <- scale(standardized.X)}
+        y <- sapply(data$Survived, unclass)           
+        # Convert categorical variables
         
-        #l'application du scale sur des données non équilibrées améliore la prédiction de la classe dominante
-        #contrairment à l'autre classe ce qui confirme la nécessité de l'équilibrage de données
-        standardized.X <- na.omit(standardized.X)
         set.seed(55)
         # create training and test sets
-        training.index <- caret::createDataPartition(data$y, p = .8,list = F)
+        training.index <- caret::createDataPartition(y, p = .8,list = F)
         train.X <- standardized.X[training.index,]
         test.X  <- standardized.X[-training.index,]
-        train.Y <- data$y[training.index]
-        test.Y <- data$y[-training.index]
+        train.Y <- y[training.index]
+        test.Y <- y[-training.index]
         set.seed(1)
         knn.pred <- knn(data.frame(train.X[,]),data.frame(test.X[,]),train.Y, k = input$k)
         # modify this to show title - confusion matrix
@@ -342,56 +342,14 @@ server <- function(input, output) {
         true.negative    <- sum(knn.pred == "1" & test.Y == "1")
         false.negative   <- sum(knn.pred == "2" & test.Y == "1")
         row.names <- c("Pre-FALSE", "Pre-TRUE" )
-        col.names <- c("Ref-FALSE", "Ref-TRUE")
+        col.names <- c("Ref-FALSE", "Ref-TRUE","Accuracy")
+        accuracy <- (true.positive+true.negative)/(true.positive+true.negative+false.negative+false.positive)
         cbind(Outcome = row.names, as.data.frame(matrix( 
-            c(true.negative, false.negative, false.positive, true.positive) ,
-            nrow = 2, ncol = 2, dimnames = list(row.names, col.names))))
+            c(true.negative, false.negative, false.positive, true.positive,accuracy,accuracy) ,
+            nrow = 2, ncol = 3, dimnames = list(row.names, col.names))))
     }, options = table.settings
     )
-    #-------------------------KNN Balanced -------------------------------------
-    output$confusionMatrixbalanced <- renderDataTable({
-        
-        data= myData()
-        data <- na.omit(data)
-        if(isTRUE(input$type == "Both"))
-            {
-            data <- ovun.sample(y ~ .-y, data = data, method ="both",N=nrow(data), seed =1)$data
-        }
-        if(isTRUE(input$type == "Under")){
-            data <- ovun.sample(y ~ .-y, data = data, method ="under",N=nrow(data)/4, seed =1)$data
-        }else{
-            data <- ovun.sample(y ~ .-y, data = data, method ="over",N=nrow(data)*2, seed =1)$data
-            
-        }
-        data[] <- lapply(data, function(x) as.numeric(x))
-        standardized.X <- data[,-21]
-        if(input$scale == TRUE){standardized.X <- scale(standardized.X)}
-        
-        #l'application du scale sur des données non équilibrées améliore la prédiction de la classe dominante
-        #contrairment à l'autre classe ce qui confirme la nécessité de l'équilibrage de données
-        standardized.X <- na.omit(standardized.X)
-        set.seed(55)
-        # create training and test sets
-        training.index <- caret::createDataPartition(data$y, p = .8,list = F)
-        train.X <- standardized.X[training.index,]
-        test.X  <- standardized.X[-training.index,]
-        train.Y <- data$y[training.index]
-        test.Y <- data$y[-training.index]
-        set.seed(1)
-        knn.pred <- knn(data.frame(train.X[,]),data.frame(test.X[,]),train.Y, k = input$k)
-        # modify this to show title - confusion matrix
-        # /false positive/positive false negative/negative
-        true.positive    <- sum(knn.pred == "2" & test.Y == "2")
-        false.positive   <- sum(knn.pred == "1" & test.Y == "2")
-        true.negative    <- sum(knn.pred == "1" & test.Y == "1")
-        false.negative   <- sum(knn.pred == "2" & test.Y == "1")
-        row.names <- c("Pre-FALSE-Balanc", "Pre-TRUE-Balanc" )
-        col.names <- c("Ref-FALSE-Balanc", "Ref-TRUE-Balanc")
-        cbind(Outcome = row.names, as.data.frame(matrix( 
-            c(true.negative, false.negative, false.positive, true.positive) ,
-            nrow = 2, ncol = 2, dimnames = list(row.names, col.names))))
-    }, options = table.settings
-    )
+
     
     table.settings <- list(searching = F, pageLength = 5, bLengthChange = F,
                            bPaginate = F, bInfo = F )
