@@ -26,7 +26,6 @@ ui <- fluidPage(
             fileInput("file1", "Choose input data"),
             uiOutput("category1"),          
             uiOutput("category2"),
-            fileInput("file2", "Choose test data"),
             uiOutput("balanceType"),
             checkboxInput("scale","scaled data",FALSE),
             
