@@ -13,6 +13,7 @@ library(DataExplorer)
 library(corrplot)
 library(labelled)
 library(ROSE)
+library(e1071)
 
 ui <- fluidPage(
     
@@ -113,13 +114,14 @@ ui <- fluidPage(
                                         h2("KNN With original data :"),
                                         dataTableOutput('confusionMatrix'),
                                         verbatimTextOutput("value"),
-                                        h2("KNN With balanced data :"),
-                                        dataTableOutput('confusionMatrixbalanced'),
-                                        verbatimTextOutput("valuebalanced")
+                                        
                                ),
                                tabPanel("LR",
                                         verbatimTextOutput("LR"),
                                         verbatimTextOutput("LRBalanced"),
+                               ),
+                               tabPanel("SVM",
+                                        verbatimTextOutput("SVM"),
                                )
                                
                            )
@@ -251,66 +253,45 @@ server <- function(input, output) {
     
     #----------------------------------LOGISTIC REGRESSION--------------------------------
     output$LR <- renderPrint({
-        #li=c(1,11,12,13,14,16,17,18,19,20)
-        dataset <- myData()
-        dataset <- na.omit(dataset)
-        dataset[] <- lapply(dataset, function(x) as.numeric(x))
-        #logreg <-glm(as.formula(paste(dataset[,-21], collapse = " ")),family=binomial(),data=dataset)
-        dataset$y <- factor(dataset$y)
-        glm.fit <- glm(dataset$y ~ .-y, data = dataset, family = "binomial")
-        print("---------------LOGISTIC REGRESSION SUMMARY----------------")
-        print(summary(glm.fit))
-        glm.probs <- predict(glm.fit,type = "response")
-        glm.pred <- ifelse(glm.probs > 0.5, "2", "1")
-        print("-----------------------CONFUSION MATRIX------------------------")
-        print(table(glm.pred,dataset$y))
-        print("-----------------------SCORE------------------------")
-        mean(glm.pred == dataset$y)
-    })
-    #-----------------------------balance select type--------------------------------------
-    output$balanceType <- renderUI({
-        selectizeInput('type', 'Choose the type of Data balancing ', choices = c("Both","Under","Over"),selected = "Both")
+      #li=c(1,11,12,13,14,16,17,18,19,20)
+      dataset <- myData()
+      dataset <- na.omit(dataset)
+      dataset[] <- lapply(dataset, function(x) as.numeric(x))
+      #logreg <-glm(as.formula(paste(dataset[,-21], collapse = " ")),family=binomial(),data=dataset)
+      dataset$Survived <- factor(dataset$Survived)
+      glm.fit <- glm(dataset$Survived ~ .-Survived, data = dataset, family = "binomial")
+      print("---------------LOGISTIC REGRESSION SUMMARY----------------")
+      print(summary(glm.fit))
+      glm.probs <- predict(glm.fit,type = "response")
+      glm.pred <- ifelse(glm.probs > 0.5, "2", "1")
+      print("-----------------------CONFUSION MATRIX------------------------")
+      print(table(glm.pred,dataset$Survived))
+      plot(table(glm.pred,dataset$Survived))
+      
+      print("-----------------------SCORE------------------------")
+      mean(glm.pred == dataset$Survived)
     })
     
-    #-------------------------LOGISTIC REGRESSION Balanced Data--------------------------------
-    output$LRBalanced <- renderPrint({
-        dataset <<- myData()
-        
-        if(isTRUE(input$type == "Both"))
-        {
-            dataset <<- myData()
-            dataset <- na.omit(dataset)
-            dataset <- ovun.sample(y ~ .-y, data = dataset, method ="both",p=0.5,N=nrow(dataset), seed =1)$data
-        }
-        else if(isTRUE(input$type == "Under"))
-        {
-            dataset <<- myData()
-            dataset <- na.omit(dataset)
-            dataset <- ovun.sample(y ~ .-y, data = dataset, method ="under",N=nrow(dataset)/4, seed =1)$data
-        }
-        else
-        {
-            dataset <<- myData()
-            dataset <- na.omit(dataset)
-            dataset <- ovun.sample(y ~ .-y, data = dataset, method ="over",N=nrow(dataset)*2, seed =1)$data
-            
-        }
-        
-        dataset <- na.omit(dataset)
-        dataset[] <- lapply(dataset, function(x) as.numeric(x))
-        #logreg <-glm(as.formula(paste(dataset[,-21], collapse = " ")),family=binomial(),data=dataset)
-        dataset$y <- factor(dataset$y)
-        glm.fit <- glm(dataset$y ~ .-y, data = dataset, family = "binomial")
-        print("---------------LOGISTIC REGRESSION SUMMARY----------------")
-        print(summary(glm.fit))
-        glm.probs <- predict(glm.fit,type = "response")
-        glm.pred <- ifelse(glm.probs > 0.5, "2", "1")
-        print("---------------------CONFUSION MATRIX---------------------")
-        print(table(glm.pred,dataset$y))
-        print("-----------------------SCORE------------------------------")
-        mean(glm.pred == dataset$y)
-        
-        
+   
+    #----------------------SVM--------------------------------------------
+      output$SVM <- renderPrint({
+      #dat = data.frame(x, y = as.factor(y))
+      dataset <<- myData()
+      dat = dataset
+      x <- dataset[,-2]
+      training.index <- caret::createDataPartition(dataset$Survived, p = .8,list = F)
+      train.X <- x[training.index,]
+      test.X  <- x[-training.index,]
+      train.Y <- dataset$Survived[training.index]
+      test.Y  <- dataset$Survived[-training.index]
+      svmfit = svm(train.Y ~ ., data = train.X, kernel = "linear", cost = 10, scale = FALSE)
+      pred <- predict(svmfit,test.X)
+      print(summary(svmfit))
+      print(svmfit)
+      table(pred, test.Y)
+      #plot(svmfit, dat, Sex ~ Pclass)
+      
+      
     })
     
     #----------------------KNN--------------------------------------------
