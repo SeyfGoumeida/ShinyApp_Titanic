@@ -14,6 +14,7 @@ library(corrplot)
 library(labelled)
 library(ROSE)
 library(e1071)
+library(nnet)
 
 ui <- fluidPage(
     
@@ -122,6 +123,9 @@ ui <- fluidPage(
                                ),
                                tabPanel("SVM",
                                         verbatimTextOutput("SVM"),
+                               ),
+                               tabPanel("Réseaux de neurones",
+                                        verbatimTextOutput("ANN"),
                                )
                                
                            )
@@ -291,6 +295,42 @@ server <- function(input, output) {
       table(pred, test.Y)
       #plot(svmfit, dat, Sex ~ Pclass)
       
+      
+    })
+    #----------------------Réseaux de neurones----------------------------
+    
+    output$ANN <- renderPrint({
+    dataset <<- myData()
+    x <- dataset[,-2]
+    y <- sapply(dataset$Survived, unclass)
+    y <- y-1
+    model <- nnet(x,y, size = 10)
+    pred <- predict(model,x)
+    print("*******************************************************")
+    print(pred[1:10])
+    print("*******************************************************")
+    print(y[1:10])
+    print("*******************************************************")
+    pred <- ifelse(pred > 0.5, "1", "0")
+    #matrice de confusion 
+    mc <- table(pred,y) 
+    print("Matrice de confusion") 
+    print(mc) 
+    
+    
+    #posLabel=1
+    #taux d'erreur 
+    err <- 1-sum(diag(mc))/sum(mc) 
+    print(paste("Taux d'erreur =", err)) 
+    posLabel=1
+    #rappel 
+    recall <- mc[posLabel,posLabel]/sum(mc[posLabel,]) 
+    print(paste("Rappel =", round(recall,3))) 
+    
+    #precision 
+    precision <- mc[posLabel,posLabel]/sum(mc[,posLabel]) 
+    print(paste("Precision =",round(precision,3))) 
+
       
     })
     
