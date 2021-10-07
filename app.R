@@ -18,8 +18,6 @@ ui <- fluidPage(
     
     titlePanel("MINI PROJET"),
     
-    
-    
     sidebarLayout(
         
         sidebarPanel(
@@ -84,14 +82,7 @@ ui <- fluidPage(
                                         )
                                         
                                ),
-                               tabPanel("Nuage", 
-                                        fluidRow(
-                                            column(12, 
-                                                   plotOutput(outputId = "Nuage")
-                                                   
-                                            )
-                                        )
-                               ),
+                        
                                tabPanel("Coorelation", 
                                         
                                         plotOutput(outputId = "Coorelation")
@@ -113,7 +104,7 @@ ui <- fluidPage(
                                         )
                                         
                                ),
-                               tabPanel("Deux Variable Quantitatives",
+                               tabPanel("Nuage",
                                         
                                         plotOutput("ScatterPlot")
                                         
@@ -234,7 +225,7 @@ server <- function(input, output) {
     #----------------------Variable ciblé(age)------------------------------------------
     output$barplotBi <- renderPlot({
         # Diagramme en barres entre les variables 'Level' et 'Sex
-        p <- ggplot(myData(), aes(x = myData()[[input$cat1]], fill = transmission )) + geom_bar()
+        p <- ggplot(myData(), aes(x = myData()[[input$cat1]], fill = Survived )) + geom_bar()
 
         p + labs(x = input$cat1)
     })
@@ -253,7 +244,7 @@ server <- function(input, output) {
     #----------------------Histogram------------------------------------------
     output$barplotProfils <- renderPlot({
         # Diagramme de profils entre les variables 'Level' et 'Sex'
-        p <- ggplot(myData(), aes(x = myData()[[input$cat1]], fill = transmission )) + geom_bar(position = "fill")
+        p <- ggplot(myData(), aes(x = myData()[[input$cat1]], fill = Survived )) + geom_bar(position = "fill")
         p + labs(x = input$cat1)
          
     })
