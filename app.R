@@ -153,10 +153,12 @@ ui1 <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("dashboard"),badgeLabel = "load data", badgeColor = "blue"),
-      menuItem("Data Visualization", tabName = "dashboard")
-    ),
-    uiOutput("category1"),          
-    uiOutput("category2")
+      menuItem("Box Plot", tabName = "boxplot", icon = icon("dashboard")),
+      menuItem("Histogram", tabName = "histo", icon = icon("dashboard")),
+      menuItem("Pie", tabName = "Pie", icon = icon("dashboard"))
+      
+      
+    )
   ),
   dashboardBody(
     tabItems(
@@ -178,7 +180,7 @@ ui1 <- dashboardPage(
                   tableOutput("packageTable")
                 )
               )
-      ),
+              ),
       tabItem("rawdata",
               box(
                 width = 12, status = "info", solidHeader = TRUE,
@@ -187,13 +189,59 @@ ui1 <- dashboardPage(
                   paste("<h4>Upload you CSV file </h4>"),
                 ),
                 fileInput("file1", "Choose input data")     
-                ),
+              ),
+              box(
+                title = "Data Summary :",
+                width = 12, status = "info", solidHeader = TRUE,
+                verbatimTextOutput("summary")
+              ),
               box(
                 width = 12, status = "info", solidHeader = TRUE,
-                title = "Data Loading :",
+                title = "Data Visualization :",
                 DT::dataTableOutput("mytable3")   
               )
+      ),
+      tabItem("boxplot",
+              box(
+                width = 9, status = "info", solidHeader = TRUE,
+                title = "Box Plot :",
+                plotOutput(outputId = "boxplot")
+              ),
+              box(
+                width = 3, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category1")
               )
+      ),
+      tabItem("histo",
+              box(
+                width = 9, status = "info", solidHeader = TRUE,
+                title = "Box Plot :",
+                plotOutput(outputId = "HistogramPW"),
+                ),
+              box(
+                width = 3, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category2")
+              ),
+              sliderInput("bins",
+                          "Number of bins:",
+                          min = 1,
+                          max = 100,
+                          value = 5)
+              ),
+      tabItem("Pie",
+              box(
+                width = 9, status = "info", solidHeader = TRUE,
+                title = "Box Plot :",
+                plotOutput(outputId = "Pie")
+              ),
+              box(
+                width = 3, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category5")
+              )
+      )
       )
     )
   )
@@ -220,10 +268,19 @@ server <- function(input, output) {
     })
     
     output$category1 <- renderUI({
-        selectizeInput('cat1', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "age")
+        selectizeInput('cat1', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
     })
     output$category2 <- renderUI({
-        selectizeInput('cat2', 'Choose the seconde variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "age")
+        selectizeInput('cat2', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+    })
+    output$category3 <- renderUI({
+      selectizeInput('cat3', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+    })
+    output$category4 <- renderUI({
+      selectizeInput('cat4', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+    })
+    output$category5 <- renderUI({
+      selectizeInput('cat5', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
     })
     
     #----------------------DATASET------------------------------------------
@@ -248,14 +305,14 @@ server <- function(input, output) {
     
     output$HistogramPW <- renderPlot({
         
-        pw = myData()[[input$cat1]]
+        pw = myData()[[input$cat2]]
         
         bins <- seq(min(pw), max(pw), length.out = input$bins + 1)
         hist(pw,
              breaks = bins,
              col = "orange",
-             main = input$cat1,
-             xlab = input$cat1,
+             main = input$cat2,
+             xlab = input$cat2,
              ylab = "Number ")
         
     })
@@ -267,8 +324,8 @@ server <- function(input, output) {
     
     #-------------------------Pie--------------------------------------
     output$Pie <- renderPlot({
-        pie(table(myData()[input$cat1]), labels = names(table(myData()[input$cat1])), 
-            main = input$cat1, col=c())    
+        pie(table(myData()[input$cat5]), labels = names(table(myData()[input$cat5])), 
+            main = input$cat5, col=c())    
     })
     
     #-----------------------NUAGE---------------------------------------
