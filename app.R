@@ -18,13 +18,12 @@ library(nnet)
 
 ui <- fluidPage(
     
-    titlePanel("MINI PROJET"),
+    titlePanel("MINI PROJET TITANIC"),
     
     sidebarLayout(
         
         sidebarPanel(
-            
-            
+          
             fileInput("file1", "Choose input data"),
             uiOutput("category1"),          
             uiOutput("category2"),
