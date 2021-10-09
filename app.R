@@ -151,18 +151,12 @@ ui <- fluidPage(
 ui1 <- dashboardPage(
   dashboardHeader(title = "MINI PROJET TITANIC"),
   dashboardSidebar(
-    sliderInput("rateThreshold", "Warn when rate exceeds",
-                min = 0, max = 50, value = 3, step = 0.1
-    ),
     sidebarMenu(
-      menuItem("Dashboard", tabName = "dashboard"),
-      menuItem("Choose input data", tabName = "rawdata")
+      menuItem("Data Visualization", tabName = "rawdata", icon = icon("dashboard"),badgeLabel = "load data", badgeColor = "blue"),
+      menuItem("Data Visualization", tabName = "dashboard")
     ),
-    fileInput("file1", "Choose input data"),
     uiOutput("category1"),          
-    uiOutput("category2"),
-    uiOutput("balanceType"),
-    checkboxInput("scale","scaled data",FALSE)
+    uiOutput("category2")
   ),
   dashboardBody(
     tabItems(
@@ -192,12 +186,17 @@ ui1 <- dashboardPage(
                 HTML(
                   paste("<h4>Upload you CSV file </h4>"),
                 ),
-                downloadButton("file1", "Download as CSV")
-        
+                fileInput("file1", "Choose input data")     
+                ),
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Data Loading :",
+                DT::dataTableOutput("mytable3")   
+              )
+              )
       )
     )
   )
-))
 #------------------------------------------------------------------------------------------------------------
 server <- function(input, output) {
     
@@ -219,7 +218,6 @@ server <- function(input, output) {
         
         data <- read.csv(inFile$datapath, header = TRUE,sep = ";",stringsAsFactors=T)
     })
-    
     
     output$category1 <- renderUI({
         selectizeInput('cat1', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "age")
