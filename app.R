@@ -1,3 +1,5 @@
+## app.R ##
+library(shinydashboard)
 rm(list = ls())
 library(shiny)
 library (reticulate )
@@ -15,6 +17,18 @@ library(labelled)
 library(ROSE)
 library(e1071)
 library(nnet)
+library(shiny)
+library(shinySignals)   # devtools::install_github("hadley/shinySignals")
+library(dplyr)
+library(shinydashboard)
+library(bubbles)        # devtools::install_github("jcheng5/bubbles")
+source("bloomfilter.R")
+
+#install.packages(c("shiny", "dplyr", "htmlwidgets", "digest", "bit"))
+#devtools::install_github("rstudio/shinydashboard")
+#devtools::install_github("jcheng5/bubbles")
+#devtools::install_github("hadley/shinySignals")
+#-----------------------------------------------------------------------------------------------
 
 ui <- fluidPage(
     
@@ -134,7 +148,56 @@ ui <- fluidPage(
             
         ))
 )
-
+ui1 <- dashboardPage(
+  dashboardHeader(title = "MINI PROJET TITANIC"),
+  dashboardSidebar(
+    sliderInput("rateThreshold", "Warn when rate exceeds",
+                min = 0, max = 50, value = 3, step = 0.1
+    ),
+    sidebarMenu(
+      menuItem("Dashboard", tabName = "dashboard"),
+      menuItem("Choose input data", tabName = "rawdata")
+    ),
+    fileInput("file1", "Choose input data"),
+    uiOutput("category1"),          
+    uiOutput("category2"),
+    uiOutput("balanceType"),
+    checkboxInput("scale","scaled data",FALSE)
+  ),
+  dashboardBody(
+    tabItems(
+      tabItem("dashboard",
+              fluidRow(
+                valueBoxOutput("rate"),
+                valueBoxOutput("count"),
+                valueBoxOutput("users")
+              ),
+              fluidRow(
+                box(
+                  width = 8, status = "info", solidHeader = TRUE,
+                  title = "Popularity by package (last 5 min)",
+                  bubblesOutput("packagePlot", width = "100%", height = 600)
+                ),
+                box(
+                  width = 4, status = "info",
+                  title = "Top packages (last 5 min)",
+                  tableOutput("packageTable")
+                )
+              )
+      ),
+      tabItem("rawdata",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Data Loading :",
+                HTML(
+                  paste("<h4>Upload you CSV file </h4>"),
+                ),
+                downloadButton("file1", "Download as CSV")
+        
+      )
+    )
+  )
+))
 #------------------------------------------------------------------------------------------------------------
 server <- function(input, output) {
     
@@ -417,6 +480,6 @@ fte_theme <- function() {
         # Plot margins
         theme(plot.margin = unit(c(0.35, 0.2, 0.3, 0.35), "cm"))
 }
-shinyApp(ui, server)
+shinyApp(ui1, server)
 
 
