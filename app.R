@@ -197,15 +197,16 @@ ui1 <- dashboardPage(
                 fileInput("file1", "Choose input data")     
               ),
               box(
-                title = "Data Summary :",
-                width = 12, status = "info", solidHeader = TRUE,
-                verbatimTextOutput("summary")
-              ),
-              box(
                 width = 12, status = "info", solidHeader = TRUE,
                 title = "Data Visualization :",
                 DT::dataTableOutput("mytable3")   
+              ),
+              box(
+                title = "Data Summary :",
+                width = 12, status = "info", solidHeader = TRUE,
+                verbatimTextOutput("summary")
               )
+              
       ),
       tabItem("Analyse_Unidimensionnelle",
               
