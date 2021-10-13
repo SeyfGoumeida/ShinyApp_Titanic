@@ -290,14 +290,16 @@ ui1 <- dashboardPage(
               ,
               box(
                    width = 12, status = "info", solidHeader = TRUE,
-                    title = "SVM :",
-                    verbatimTextOutput("SVM"),
+                  title = "SVM :",
+                   box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('SVM')),
+                   box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("SvmAccuracy"))
                  )
               ,
                box(
                   width = 12, status = "info", solidHeader = TRUE,
                   title = " Réseaux de neurones :",
-                  verbatimTextOutput("ANN"),
+                  box(width = 7, status = "info", solidHeader = TRUE, dataTableOutput('ANN')),
+                  box(width = 5, status = "info", solidHeader = TRUE, valueBoxOutput("AnnAccuracy"))
                    )
 
       )
@@ -477,7 +479,7 @@ server <- function(input, output) {
     
    
     #----------------------SVM--------------------------------------------
-      output$SVM <- renderPrint({
+    output$SVM <- renderDataTable({
       #dat = data.frame(x, y = as.factor(y))
       dataset <<- myData()
       dat = dataset
@@ -492,46 +494,94 @@ server <- function(input, output) {
       print(summary(svmfit))
       print(svmfit)
       table(pred, test.Y)
-      #plot(svmfit, dat, Sex ~ Pclass)
       
+      tb <- table(pred, test.Y)
+      print(tb)
+      print(tb["Survived","Died"])
+      true_positive    <- tb[2,2]
+      false_positive   <- tb[2,1]
+      true_negative    <- tb[1,1]
+      false_negative   <- tb[1,2]
       
+      row.names <- c("Pre-FALSE", "Pre-TRUE" )
+      col.names <- c("Ref-FALSE", "Ref-TRUE")
+      Svm_accuracy <<- (true_positive+true_negative)/(true_positive+true_negative+false_negative+false_positive)
+      cbind(Outcome = row.names, as.data.frame(matrix( 
+        c(true_negative, false_negative, false_positive, true_positive) ,
+        nrow = 2, ncol = 2, dimnames = list(row.names, col.names))))
+    }, options = table.settings)
+    
+    
+    output$SvmAccuracy <- renderValueBox({
+      # The downloadRate is the number of rows in pkgData since
+      # either startTime or maxAgeSecs ago, whichever is later.
+      
+      valueBox(
+        value = formatC(Svm_accuracy, digits = 4, format = "f"),
+        subtitle = "Accuracy",
+        icon = icon("area-chart"),
+        color = "aqua"
+      )
     })
+      
+      
+    
     #----------------------Réseaux de neurones----------------------------
     
-    output$ANN <- renderPrint({
+    output$ANN <- renderDataTable({
+    
     dataset <<- myData()
+    dataset[] <- lapply(dataset, function(x) as.numeric(x))
+    
     x <- dataset[,-2]
-    y <- sapply(dataset$Survived, unclass)
-    y <- y-1
-    model <- nnet(x,y, size = 10)
-    pred <- predict(model,x)
-    print("*******************************************************")
-    print(pred[1:10])
-    print("*******************************************************")
-    print(y[1:10])
-    print("*******************************************************")
+    training.index <- caret::createDataPartition(dataset$Survived, p = .8, list = F)
+    train.X <- x[training.index,]
+    test.X  <- x[-training.index,]
+    train.Y <- dataset$Survived[training.index]
+    test.Y  <- dataset$Survived[-training.index]
+    
+    model <- nnet(train.X, train.Y, size = 10)
+    pred <- predict(model, test.X)
+  
     pred <- ifelse(pred > 0.5, "1", "0")
+    tb <- table(pred, test.Y) 
+    
+    true_positive    <- tb[2,2]
+    false_positive   <- tb[2,1]
+    true_negative    <- tb[1,1]
+    false_negative   <- tb[1,2]
+    
+    row.names <- c("Pre-FALSE", "Pre-TRUE" )
+    col.names <- c("Ref-FALSE", "Ref-TRUE")
+    Ann_accuracy <<- (true_positive+true_negative)/(true_positive+true_negative+false_negative+false_positive)
+    cbind(Outcome = row.names, as.data.frame(matrix( 
+      c(true_negative, false_negative, false_positive, true_positive) ,
+      nrow = 2, ncol = 2, dimnames = list(row.names, col.names)))) 
+    
+      err <- 1-sum(diag(tb))/sum(tb) 
+      print(paste("Taux d'erreur =", err)) 
+      posLabel=1
+      #rappel 
+      recall <- tb[posLabel,posLabel]/sum(tb[posLabel,]) 
+      print(paste("Rappel =", round(recall,3))) 
+      
+      #precision 
+      precision <- tb[posLabel,posLabel]/sum(tb[,posLabel]) 
+      print(paste("Precision =",round(precision,3))) 
+    }, options = table.settings)
+    
     #matrice de confusion 
-    mc <- table(pred,y) 
-    print("Matrice de confusion") 
-    print(mc) 
+    
+    #print("Matrice de confusion") 
+    #print(mc) 
     
     
     #posLabel=1
     #taux d'erreur 
-    err <- 1-sum(diag(mc))/sum(mc) 
-    print(paste("Taux d'erreur =", err)) 
-    posLabel=1
-    #rappel 
-    recall <- mc[posLabel,posLabel]/sum(mc[posLabel,]) 
-    print(paste("Rappel =", round(recall,3))) 
     
-    #precision 
-    precision <- mc[posLabel,posLabel]/sum(mc[,posLabel]) 
-    print(paste("Precision =",round(precision,3))) 
 
       
-    })
+    
     
     #----------------------KNN--------------------------------------------
     
