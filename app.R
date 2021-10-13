@@ -155,8 +155,20 @@ ui1 <- dashboardPage(
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("dashboard"),badgeLabel = "load data", badgeColor = "blue"),
       menuItem("Box Plot", tabName = "boxplot", icon = icon("dashboard")),
       menuItem("Histogram", tabName = "histo", icon = icon("dashboard")),
-      menuItem("Pie", tabName = "Pie", icon = icon("dashboard"))
+      menuItem("Pie", tabName = "Pie", icon = icon("dashboard")),
+      menuItem("Coorelation", tabName = "Coorelation", icon = icon("dashboard")),
+      menuItem("Nuage", tabName = "Nuage", icon = icon("dashboard")),
+      menuItem("KNN", tabName = "KNN", icon = icon("dashboard")),
+      menuItem("LR", tabName = "LR", icon = icon("dashboard")),
+      menuItem("SVM", tabName = "SVM", icon = icon("dashboard")),
+      menuItem("ANN", tabName = "ANN", icon = icon("dashboard"))
       
+      
+      
+      
+      
+      
+      #ggplot
       
     )
   ),
@@ -241,6 +253,67 @@ ui1 <- dashboardPage(
                 title = "Choose Your Variable :",
                 uiOutput("category5")
               )
+      ),
+      tabItem("Coorelation",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Coorelation :",
+                plotOutput(outputId = "Coorelation")
+                
+              )
+              
+      ),
+      tabItem("Nuage",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Nuage :",
+                plotOutput("ScatterPlot")
+                
+              )
+              
+      ),
+      tabItem("KNN",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "KNN :",
+                dataTableOutput('confusionMatrix'),
+                verbatimTextOutput("value")
+
+              ),box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "K number :",
+                sliderInput("k",
+                            "number of neighbors (K of KNN)",
+                            min = 1,
+                            max = 20,
+                            value = 5)
+              )
+              
+              
+      ),
+      tabItem("LR",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "LR :",
+                verbatimTextOutput("LR"),
+              )
+              
+      ),
+      tabItem("SVM",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "SVM :",
+                verbatimTextOutput("SVM"),
+              )
+              
+      ),
+      tabItem("ANN",
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = " Réseaux de neurones :",
+                verbatimTextOutput("ANN"),
+              )
+              
       )
       )
     )
@@ -459,7 +532,6 @@ server <- function(input, output) {
         data <- na.omit(data)
         data[] <- lapply(data, function(x) as.numeric(x))
         standardized.X <- data[,-2]
-        if(input$scale == TRUE){standardized.X <- scale(standardized.X)}
         y <- sapply(data$Survived, unclass)           
         # Convert categorical variables
         
@@ -490,6 +562,7 @@ server <- function(input, output) {
     
     table.settings <- list(searching = F, pageLength = 5, bLengthChange = F,
                            bPaginate = F, bInfo = F )
+
     
     
 }
