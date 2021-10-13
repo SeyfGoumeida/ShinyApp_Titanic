@@ -153,9 +153,7 @@ ui1 <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("dashboard"),badgeLabel = "load data", badgeColor = "blue"),
-      menuItem("Box Plot", tabName = "boxplot", icon = icon("dashboard")),
-      menuItem("Histogram", tabName = "histo", icon = icon("dashboard")),
-      menuItem("Pie", tabName = "Pie", icon = icon("dashboard")),
+      menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
       menuItem("Coorelation", tabName = "Coorelation", icon = icon("dashboard")),
       menuItem("Nuage", tabName = "Nuage", icon = icon("dashboard")),
       menuItem("KNN", tabName = "KNN", icon = icon("dashboard")),
@@ -213,45 +211,34 @@ ui1 <- dashboardPage(
                 DT::dataTableOutput("mytable3")   
               )
       ),
-      tabItem("boxplot",
+      tabItem("Analyse_Unidimensionnelle",
+              
               box(
-                width = 9, status = "info", solidHeader = TRUE,
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category1")
+              ),
+              box(
+                width = 4, status = "danger", solidHeader = TRUE,
                 title = "Box Plot :",
                 plotOutput(outputId = "boxplot")
               ),
               box(
-                width = 3, status = "info", solidHeader = TRUE,
-                title = "Choose Your Variable :",
-                uiOutput("category1")
-              )
-      ),
-      tabItem("histo",
-              box(
-                width = 9, status = "info", solidHeader = TRUE,
-                title = "Box Plot :",
-                plotOutput(outputId = "HistogramPW"),
-                ),
-              box(
-                width = 3, status = "info", solidHeader = TRUE,
-                title = "Choose Your Variable :",
-                uiOutput("category2")
-              ),
-              sliderInput("bins",
-                          "Number of bins:",
-                          min = 1,
-                          max = 100,
-                          value = 5)
-              ),
-      tabItem("Pie",
-              box(
-                width = 9, status = "info", solidHeader = TRUE,
-                title = "Box Plot :",
+                width = 4, status = "success", solidHeader = TRUE,
+                title = "Pie :",
                 plotOutput(outputId = "Pie")
               ),
               box(
-                width = 3, status = "info", solidHeader = TRUE,
-                title = "Choose Your Variable :",
-                uiOutput("category5")
+                width = 4, status = "primary", solidHeader = TRUE,
+                title = "Histogram :",
+                plotOutput(outputId = "HistogramPW"),
+               
+                  sliderInput("bins",
+                              "Number of bins:",
+                              min = 1,
+                              max = 100,
+                              value = 5),
+                
               )
       ),
       tabItem("Coorelation",
@@ -269,6 +256,15 @@ ui1 <- dashboardPage(
                 title = "Nuage :",
                 plotOutput("ScatterPlot")
                 
+              ),
+              box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category2")
+              ),box(
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Choose Your Variable :",
+                uiOutput("category3")
               )
               
       ),
@@ -363,10 +359,14 @@ server <- function(input, output) {
     })
     #----------------------BOXPLOT------------------------------------------
     output$boxplot <- renderPlot({
-        boxplot(myData()[input$cat1],
+        pw = myData()[input$cat1]
+        if(class(pw)!= "integer") {
+          pw <- unclass(pw)
+        }
+        boxplot(pw,
                 at = c(1),
                 names = c("Petal.W"),
-                col = c("orange"),
+                col = c("red"),
                 main = input$cat1,
                 xlab = input$cat1,las = 1,
                 border = "brown",
@@ -377,17 +377,20 @@ server <- function(input, output) {
     #----------------------Histogram------------------------------------------
     
     output$HistogramPW <- renderPlot({
-        
-        pw = myData()[[input$cat2]]
-        
-        bins <- seq(min(pw), max(pw), length.out = input$bins + 1)
-        hist(pw,
-             breaks = bins,
-             col = "orange",
-             main = input$cat2,
-             xlab = input$cat2,
-             ylab = "Number ")
-        
+      
+      pw = myData()[[input$cat1]]
+      if(class(pw)!= "integer") {
+        pw <- unclass(pw)
+      }
+      
+      bins <- seq(min(pw), max(pw), length.out = input$bins + 1)
+      hist(pw,
+           breaks = bins,
+           col = "blue",
+           main = input$cat1,
+           xlab = input$cat1,
+           ylab = "Number ")
+      
     })
     #----------------------Summary------------------------------------------
     output$summary <- renderPrint({
@@ -397,8 +400,8 @@ server <- function(input, output) {
     
     #-------------------------Pie--------------------------------------
     output$Pie <- renderPlot({
-        pie(table(myData()[input$cat5]), labels = names(table(myData()[input$cat5])), 
-            main = input$cat5, col=c())    
+        pie(table(myData()[input$cat1]), labels = names(table(myData()[input$cat1])), 
+            main = input$cat1, col=c())    
     })
     
     #-----------------------NUAGE---------------------------------------
@@ -406,8 +409,8 @@ server <- function(input, output) {
     
     output$Nuage <- renderPlot({
         # Basic scatter plot
-        p <- ggplot(myData(), aes(x=myData()[[input$cat1]], y=myData()[[input$cat2]])) + geom_point()
-        p + labs(x = input$cat1,y = input$cat2)
+        p <- ggplot(myData(), aes(x=myData()[[input$cat2]], y=myData()[[input$cat3]])) + geom_point()
+        p + labs(x = input$cat2,y = input$cat3)
         
     })
     
