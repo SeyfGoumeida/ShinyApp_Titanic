@@ -29,6 +29,11 @@ source("bloomfilter.R")
 #devtools::install_github("jcheng5/bubbles")
 #devtools::install_github("hadley/shinySignals")
 #-----------------------------------------------------------------------------------------------
+Lr_accuracy <<- 1
+Knn_accuracy <<- 1
+Svm_accuracy <<- 1
+NN_accuracy <<- 1
+
 
 ui <- fluidPage(
     
@@ -152,20 +157,11 @@ ui1 <- dashboardPage(
   dashboardHeader(title = "MINI PROJET TITANIC"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Data Visualization", tabName = "rawdata", icon = icon("dashboard"),badgeLabel = "load data", badgeColor = "blue"),
+      menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"),badgeLabel = "load data", badgeColor = "blue"),
       menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
-      menuItem("Coorelation", tabName = "Coorelation", icon = icon("dashboard")),
-      menuItem("Nuage", tabName = "Nuage", icon = icon("dashboard")),
-      menuItem("KNN", tabName = "KNN", icon = icon("dashboard")),
-      menuItem("LR", tabName = "LR", icon = icon("dashboard")),
-      menuItem("SVM", tabName = "SVM", icon = icon("dashboard")),
-      menuItem("ANN", tabName = "ANN", icon = icon("dashboard"))
-      
-      
-      
-      
-      
-      
+      menuItem("Analyse Bidimensionnelle", tabName = "Analyse_Bidimensionnelle", icon = icon("dashboard")),
+      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard"))
+
       #ggplot
       
     )
@@ -241,76 +237,69 @@ ui1 <- dashboardPage(
                 
               )
       ),
-      tabItem("Coorelation",
+      tabItem("Analyse_Bidimensionnelle",
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 6, status = "info", solidHeader = TRUE,
+                title = "Nuage :",
+                plotOutput("ScatterPlot"),
+                box(
+                  width = 6, status = "info", solidHeader = TRUE,
+                  title = "Choose first Variable :",
+                  uiOutput("category2")
+                ),
+                box(
+                  width = 6, status = "info", solidHeader = TRUE,
+                  title = "Choose second Variable :",
+                  uiOutput("category3")
+                )
+                
+              ),
+             
+              box(
+                width = 6, status = "info", solidHeader = TRUE,
                 title = "Coorelation :",
                 plotOutput(outputId = "Coorelation")
                 
               )
               
       ),
-      tabItem("Nuage",
-              box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "Nuage :",
-                plotOutput("ScatterPlot")
+      tabItem("Clustering",
+                box(
+                  width = 6, status = "info", solidHeader = TRUE,
+                  title = "KNN :",
+                  dataTableOutput('confusionMatrix'),
+                  box(width = 12, status = "info", solidHeader = TRUE,
+                    sliderInput("k",
+                                  "Number of neighbors",
+                                  min = 1,
+                                  max = 20,
+                                  value = 5)),
+                  box(width = 6, status = "info", solidHeader = TRUE,valueBoxOutput("KNNAccuracy"))
                 
               ),
-              box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "Choose Your Variable :",
-                uiOutput("category2")
-              ),box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "Choose Your Variable :",
-                uiOutput("category3")
-              )
               
-      ),
-      tabItem("KNN",
               box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "KNN :",
-                dataTableOutput('confusionMatrix'),
-                verbatimTextOutput("value")
+              width = 12, status = "info", solidHeader = TRUE,
+              title = "LR :",
+              box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('LR')),
+              box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("lrAccuracy"))
+                  )
 
-              ),box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "K number :",
-                sliderInput("k",
-                            "number of neighbors (K of KNN)",
-                            min = 1,
-                            max = 20,
-                            value = 5)
-              )
-              
-              
-      ),
-      tabItem("LR",
+              ,
               box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "LR :",
-                verbatimTextOutput("LR"),
-              )
-              
-      ),
-      tabItem("SVM",
-              box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = "SVM :",
-                verbatimTextOutput("SVM"),
-              )
-              
-      ),
-      tabItem("ANN",
-              box(
-                width = 12, status = "info", solidHeader = TRUE,
-                title = " Réseaux de neurones :",
-                verbatimTextOutput("ANN"),
-              )
-              
+                   width = 12, status = "info", solidHeader = TRUE,
+                    title = "SVM :",
+                    verbatimTextOutput("SVM"),
+                 )
+              ,
+               box(
+                  width = 12, status = "info", solidHeader = TRUE,
+                  title = " Réseaux de neurones :",
+                  verbatimTextOutput("ANN"),
+                   )
+
       )
+     
       )
     )
   )
@@ -344,12 +333,6 @@ server <- function(input, output) {
     })
     output$category3 <- renderUI({
       selectizeInput('cat3', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
-    })
-    output$category4 <- renderUI({
-      selectizeInput('cat4', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
-    })
-    output$category5 <- renderUI({
-      selectizeInput('cat5', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
     })
     
     #----------------------DATASET------------------------------------------
@@ -405,14 +388,14 @@ server <- function(input, output) {
     })
     
     #-----------------------NUAGE---------------------------------------
-    library(ggplot2)
+   # library(ggplot2)
     
-    output$Nuage <- renderPlot({
+    #output$Nuage <- renderPlot({
         # Basic scatter plot
-        p <- ggplot(myData(), aes(x=myData()[[input$cat2]], y=myData()[[input$cat3]])) + geom_point()
-        p + labs(x = input$cat2,y = input$cat3)
+     #   p <- ggplot(myData(), aes(x=myData()[[input$cat2]], y=myData()[[input$cat3]])) + geom_point()
+      #  p + labs(x = input$cat2,y = input$cat3)
         
-    })
+    #})
     
     
     #-----------------------CORRELATION--------------------------------------------
@@ -431,12 +414,12 @@ server <- function(input, output) {
     
     output$ScatterPlot <- renderPlot({
         ggplot(myData(), aes_string(x = myData()[[input$cat2]], 
-                                    y = myData()[[input$cat1]], 
+                                    y = myData()[[input$cat3]], 
                                     color = "factor(input$cat2)")) + 
             
             geom_point(size = 2, position = position_jitter(w = 0.1, h = 0.1)) + 
             labs(x = input$cat2,
-                 y = input$cat1) +
+                 y = input$cat3) +
             fte_theme() + 
             scale_color_manual(name = "--------",values=c("#7A99AC", "#E4002B")) 
     })          
@@ -449,7 +432,7 @@ server <- function(input, output) {
     })
     
     #----------------------------------LOGISTIC REGRESSION--------------------------------
-    output$LR <- renderPrint({
+    output$LR <- renderDataTable({
       #li=c(1,11,12,13,14,16,17,18,19,20)
       dataset <- myData()
       dataset <- na.omit(dataset)
@@ -461,12 +444,33 @@ server <- function(input, output) {
       print(summary(glm.fit))
       glm.probs <- predict(glm.fit,type = "response")
       glm.pred <- ifelse(glm.probs > 0.5, "2", "1")
-      print("-----------------------CONFUSION MATRIX------------------------")
-      print(table(glm.pred,dataset$Survived))
-      plot(table(glm.pred,dataset$Survived))
+      #print("-----------------------CONFUSION MATRIX------------------------")
+      #print(table(glm.pred,dataset$Survived))
+      #plot(table(glm.pred,dataset$Survived))
+      tb <- table(glm.pred,dataset$Survived)
+      true_positive    <- tb[2,2]
+      false_positive   <- tb[2,1]
+      true_negative    <- tb[1,1]
+      false_negative   <- tb[1,2]
       
-      print("-----------------------SCORE------------------------")
-      mean(glm.pred == dataset$Survived)
+      row.names <- c("Pre-FALSE", "Pre-TRUE" )
+      col.names <- c("Ref-FALSE", "Ref-TRUE")
+      Lr_accuracy <<- (true_positive+true_negative)/(true_positive+true_negative+false_negative+false_positive)
+      cbind(Outcome = row.names, as.data.frame(matrix( 
+        c(true_negative, false_negative, false_positive, true_positive) ,
+        nrow = 2, ncol = 2, dimnames = list(row.names, col.names))))
+    }, options = table.settings)
+
+    output$lrAccuracy <- renderValueBox({
+      # The downloadRate is the number of rows in pkgData since
+      # either startTime or maxAgeSecs ago, whichever is later.
+      
+      valueBox(
+        value = formatC(Lr_accuracy, digits = 4, format = "f"),
+        subtitle = "Accuracy",
+        icon = icon("area-chart"),
+        color = "aqua"
+      )
     })
     
    
@@ -554,13 +558,26 @@ server <- function(input, output) {
         true.negative    <- sum(knn.pred == "1" & test.Y == "1")
         false.negative   <- sum(knn.pred == "2" & test.Y == "1")
         row.names <- c("Pre-FALSE", "Pre-TRUE" )
-        col.names <- c("Ref-FALSE", "Ref-TRUE","Accuracy")
-        accuracy <- (true.positive+true.negative)/(true.positive+true.negative+false.negative+false.positive)
+        col.names <- c("Ref-FALSE", "Ref-TRUE")
+        Knn_accuracy <<- (true.positive+true.negative)/(true.positive+true.negative+false.negative+false.positive)
         cbind(Outcome = row.names, as.data.frame(matrix( 
-            c(true.negative, false.negative, false.positive, true.positive,accuracy,accuracy) ,
-            nrow = 2, ncol = 3, dimnames = list(row.names, col.names))))
+            c(true.negative, false.negative, false.positive, true.positive) ,
+            nrow = 2, ncol = 2, dimnames = list(row.names, col.names))))
+        
     }, options = table.settings
     )
+    
+    output$KNNAccuracy <- renderValueBox({
+      # The downloadRate is the number of rows in pkgData since
+      # either startTime or maxAgeSecs ago, whichever is later.
+      a <- input$k
+      valueBox(
+        value = formatC(Knn_accuracy, digits = 4, format = "f"),
+        subtitle = "Accuracy",
+        icon = icon("area-chart"),
+        color = "aqua"
+      )
+    })
 
     
     table.settings <- list(searching = F, pageLength = 5, bLengthChange = F,
