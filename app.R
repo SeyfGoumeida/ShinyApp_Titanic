@@ -292,14 +292,20 @@ ui1 <- dashboardPage(
                    width = 12, status = "info", solidHeader = TRUE,
                   title = "SVM :",
                    box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('SVM')),
-                   box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("SvmAccuracy"))
+                   box(width = 5, status = "info", solidHeader = TRUE,uiOutput("kernel"),valueBoxOutput("SvmAccuracy"))
                  )
               ,
                box(
                   width = 12, status = "info", solidHeader = TRUE,
                   title = " Réseaux de neurones :",
                   box(width = 7, status = "info", solidHeader = TRUE, dataTableOutput('ANN')),
-                  box(width = 5, status = "info", solidHeader = TRUE, valueBoxOutput("AnnAccuracy"))
+                  box(width = 5, status = "info", solidHeader = TRUE, 
+                      sliderInput("size",
+                                  "Size of neurons",
+                                  min = 1,
+                                  max = 100,
+                                  value = 10),
+                      valueBoxOutput("AnnAccuracy"))
                    )
 
       )
@@ -330,27 +336,57 @@ server <- function(input, output) {
     })
     
     output$category1 <- renderUI({
-        selectizeInput('cat1', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+        selectizeInput('cat1', 'Choose one variable', choices = c("Age",
+                                                                            "Sex",
+                                                                            "Survived",
+                                                                            "Fare",
+                                                                            "Embarked", 
+                                                                            "Pclass",
+                                                                            "Title",
+                                                                            "IsAlone"),selected = "Age")
     })
     output$category2 <- renderUI({
-        selectizeInput('cat2', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+        selectizeInput('cat2', 'Choose one variable', choices  = c("Age",
+                                                                            "Sex",
+                                                                            "Survived",
+                                                                            "Fare",
+                                                                            "Embarked", 
+                                                                            "Pclass",
+                                                                            "Title",
+                                                                            "IsAlone"),selected = "Age")
     })
     output$category3 <- renderUI({
-      selectizeInput('cat3', 'Choose one variable', choices = c("All",sort(as.character(unique(names(myData()))))),selected = "Age")
+      selectizeInput('cat3', 'Choose one variable', choices = c("Age",
+                                                                          "Sex",
+                                                                          "Survived",
+                                                                          "Fare",
+                                                                          "Embarked", 
+                                                                          "Pclass",
+                                                                          "Title",
+                                                                          "IsAlone"),selected = "Age")
     })
     
+    output$size <- renderUI({
+      selectizeInput('size', 'Choose the size for the ANN :', choices = c("linear", "polynomial", "radial"),selected = "linear")
+    })    
+    output$kernel <- renderUI({
+      selectizeInput('kernel', 'Choose the kernel for the SVM :', choices = c("linear", "polynomial", "radial"),selected = "linear")
+    })
     #----------------------DATASET------------------------------------------
     output$mytable3 <- DT::renderDataTable({
         DT::datatable(myData())
         
     })
     #----------------------BOXPLOT------------------------------------------
+    
     output$boxplot <- renderPlot({
-        pw = myData()[input$cat1]
-        if(class(pw)!= "integer") {
-          pw <- unclass(pw)
-        }
-        boxplot(pw,
+      pw = myData()[[input$cat1]]
+      
+      if(class(pw) != "integer") {
+        pw <- unclass(pw)
+      }
+       
+      boxplot(pw,
                 at = c(1),
                 names = c("Petal.W"),
                 col = c("red"),
@@ -359,16 +395,18 @@ server <- function(input, output) {
                 border = "brown",
                 notch = TRUE,
                 horizontal = TRUE
-        )
+      )
     })
-    #----------------------Histogram------------------------------------------
+    
+    #----------------------hisogram-------------------------
     
     output$HistogramPW <- renderPlot({
-      
       pw = myData()[[input$cat1]]
-      if(class(pw)!= "integer") {
-        pw <- unclass(pw)
-      }
+      if(class(pw) != "integer" & class(pw) != "numeric") { 
+        barplot(table(pw), 
+                col = "blue")}
+      
+      else {
       
       bins <- seq(min(pw), max(pw), length.out = input$bins + 1)
       hist(pw,
@@ -377,6 +415,7 @@ server <- function(input, output) {
            main = input$cat1,
            xlab = input$cat1,
            ylab = "Number ")
+      }
       
     })
     #----------------------Summary------------------------------------------
@@ -489,7 +528,7 @@ server <- function(input, output) {
       test.X  <- x[-training.index,]
       train.Y <- dataset$Survived[training.index]
       test.Y  <- dataset$Survived[-training.index]
-      svmfit = svm(train.Y ~ ., data = train.X, kernel = "linear", cost = 10, scale = FALSE)
+      svmfit = svm(train.Y ~ ., data = train.X, kernel = input$kernel, cost = 10, scale = FALSE)
       pred <- predict(svmfit,test.X)
       print(summary(svmfit))
       print(svmfit)
@@ -515,7 +554,7 @@ server <- function(input, output) {
     output$SvmAccuracy <- renderValueBox({
       # The downloadRate is the number of rows in pkgData since
       # either startTime or maxAgeSecs ago, whichever is later.
-      
+      k <-input$kernel
       valueBox(
         value = formatC(Svm_accuracy, digits = 4, format = "f"),
         subtitle = "Accuracy",
@@ -530,21 +569,23 @@ server <- function(input, output) {
     
     output$ANN <- renderDataTable({
     
+    s <- input$size
     dataset <<- myData()
-    dataset[] <- lapply(dataset, function(x) as.numeric(x))
-    
     x <- dataset[,-2]
-    training.index <- caret::createDataPartition(dataset$Survived, p = .8, list = F)
-    train.X <- x[training.index,]
-    test.X  <- x[-training.index,]
-    train.Y <- dataset$Survived[training.index]
-    test.Y  <- dataset$Survived[-training.index]
+    y <- sapply(dataset$Survived, unclass)
+    y <- y-1
+    model <- nnet(x,y, size = input$size)
+    pred <- predict(model,x)
     
-    model <- nnet(train.X, train.Y, size = 10)
-    pred <- predict(model, test.X)
-  
     pred <- ifelse(pred > 0.5, "1", "0")
-    tb <- table(pred, test.Y) 
+    print("pred")
+    print(pred)
+    
+    #matrice de confusion 
+    tb <- table(pred,y) 
+    print("Matrice de confusion") 
+    print(tb)
+    
     
     true_positive    <- tb[2,2]
     false_positive   <- tb[2,1]
@@ -554,9 +595,7 @@ server <- function(input, output) {
     row.names <- c("Pre-FALSE", "Pre-TRUE" )
     col.names <- c("Ref-FALSE", "Ref-TRUE")
     Ann_accuracy <<- (true_positive+true_negative)/(true_positive+true_negative+false_negative+false_positive)
-    cbind(Outcome = row.names, as.data.frame(matrix( 
-      c(true_negative, false_negative, false_positive, true_positive) ,
-      nrow = 2, ncol = 2, dimnames = list(row.names, col.names)))) 
+    
     
       err <- 1-sum(diag(tb))/sum(tb) 
       print(paste("Taux d'erreur =", err)) 
@@ -568,21 +607,23 @@ server <- function(input, output) {
       #precision 
       precision <- tb[posLabel,posLabel]/sum(tb[,posLabel]) 
       print(paste("Precision =",round(precision,3))) 
+      cbind(Outcome = row.names, as.data.frame(matrix( 
+        c(true_negative, false_negative, false_positive, true_positive) ,
+        nrow = 2, ncol = 2, dimnames = list(row.names, col.names)))) 
     }, options = table.settings)
-    
-    #matrice de confusion 
-    
-    #print("Matrice de confusion") 
-    #print(mc) 
-    
-    
-    #posLabel=1
-    #taux d'erreur 
-    
 
+    output$AnnAccuracy <- renderValueBox({
+      # The downloadRate is the number of rows in pkgData since
+      # either startTime or maxAgeSecs ago, whichever is later.
+      s <- input$size
       
-    
-    
+      valueBox(
+        value = formatC(Ann_accuracy, digits = 4, format = "f"),
+        subtitle = "Accuracy",
+        icon = icon("area-chart"),
+        color = "aqua"
+      )
+    })
     #----------------------KNN--------------------------------------------
     
     output$confusionMatrix <- renderDataTable({
