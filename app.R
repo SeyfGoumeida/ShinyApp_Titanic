@@ -264,20 +264,22 @@ ui1 <- dashboardPage(
               
       ),
       tabItem("Clustering",
-                box(
-                  width = 6, status = "info", solidHeader = TRUE,
+              box(
+                  width = 12, status = "info", solidHeader = TRUE,
                   title = "KNN :",
-                  dataTableOutput('confusionMatrix'),
-                  box(width = 12, status = "info", solidHeader = TRUE,
+                box(width = 7, status = "info", solidHeader = TRUE,
+                    dataTableOutput('confusionMatrix'),
+                    ),
+                
+                box(width = 5, status = "info", solidHeader = TRUE,
                     sliderInput("k",
-                                  "Number of neighbors",
-                                  min = 1,
-                                  max = 20,
-                                  value = 5)),
-                  box(width = 6, status = "info", solidHeader = TRUE,valueBoxOutput("KNNAccuracy"))
+                                "Number of neighbors",
+                                min = 1,
+                                max = 20,
+                                value = 5),
+                    valueBoxOutput("KNNAccuracy"))
                 
               ),
-              
               box(
               width = 12, status = "info", solidHeader = TRUE,
               title = "LR :",
