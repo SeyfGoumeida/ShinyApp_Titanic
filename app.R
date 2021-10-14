@@ -76,124 +76,6 @@ addHoverBehavior <- c(
   "}")
 
 
-ui <- fluidPage(
-    
-    titlePanel("MINI PROJET TITANIC"),
-    
-    sidebarLayout(
-        
-        sidebarPanel(
-          
-            fileInput("file1", "Choose input data"),
-            uiOutput("category1"),          
-            uiOutput("category2"),
-            uiOutput("balanceType"),
-            checkboxInput("scale","scaled data",FALSE),
-            
-            sliderInput("k",
-                        "number of neighbors (K of KNN)",
-                        min = 1,
-                        max = 20,
-                        value = 5),
-            
-            fluidRow(
-                column(12, 
-                       htmlOutput(outputId = "tp")  
-                )
-            ),
-            
-            
-            
-        ),
-        mainPanel(
-            fluidRow(
-                column(12, 
-                       mainPanel(
-                           tabsetPanel(
-                               id = 'dataset',
-                               tabPanel("Car details", 
-                                        DT::dataTableOutput("mytable3")
-                               ),
-                               tabPanel("Summary", 
-                                        verbatimTextOutput("summary")
-                                        
-                               ),
-                               tabPanel("BoxPlot",
-                                        plotOutput(outputId = "boxplot"),
-                                        plotOutput(outputId = "boxplotSpecies")
-                               ),
-                               tabPanel("Pie", 
-                                        fluidRow(
-                                            column(12, 
-                                                   plotOutput(outputId = "Pie")
-                                            )
-                                        )
-                                        
-                               ),
-                               tabPanel("Hostogram", 
-                                        fluidRow(
-                                            column(12, 
-                                                   plotOutput(outputId = "HistogramPW"),
-                                                   sliderInput("bins",
-                                                               "Number of bins:",
-                                                               min = 1,
-                                                               max = 100,
-                                                               value = 5)
-                                            )
-                                        )
-                                        
-                               ),
-                        
-                               tabPanel("Coorelation", 
-                                        
-                                        plotOutput(outputId = "Coorelation")
-                                        
-                               ),
-                               tabPanel("Variables distribution in Transmission attrition", 
-
-                                        fluidRow(
-                                            column(12,
-                                                   plotOutput(outputId = "barplotBi")
-                                            ),
-                                        fluidRow(      
-                                            column(12,
-                                                   plotOutput(outputId = "barplotProfils")
-                                                  
-                                                   
-                                                )
-                                            )
-                                        )
-                                        
-                               ),
-                               tabPanel("Nuage",
-                                        
-                                        plotOutput("ScatterPlot")
-                                        
-                                        ),
-                               tabPanel("KNN", 
-                                        h2("KNN With original data :"),
-                                        dataTableOutput('confusionMatrix'),
-                                        verbatimTextOutput("value"),
-                                        
-                               ),
-                               tabPanel("LR",
-                                        verbatimTextOutput("LR"),
-                                        verbatimTextOutput("LRBalanced"),
-                               ),
-                               tabPanel("SVM",
-                                        verbatimTextOutput("SVM"),
-                               ),
-                               tabPanel("Réseaux de neurones",
-                                        verbatimTextOutput("ANN"),
-                               )
-                               
-                           )
-                       )
-                )
-            )
-            
-        ))
-)
 ui1 <- dashboardPage(skin = "green",
   dashboardHeader(title = "MINI PROJET TITANIC"),
   dashboardSidebar(
@@ -203,9 +85,8 @@ ui1 <- dashboardPage(skin = "green",
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"), badgeColor = "blue"),
       menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
       menuItem("Analyse Bidimensionnelle", tabName = "Analyse_Bidimensionnelle", icon = icon("dashboard")),
-      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard")),
-      menuItem("box_v2", tabName = "box_v2", icon = icon("dashboard"))
-      
+      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard"))
+
 
       #ggplot
       
@@ -269,9 +150,56 @@ ui1 <- dashboardPage(skin = "green",
                 uiOutput("category1")
               ),
               box(
-                width = 12, status = "success", solidHeader = TRUE,
+                width = 6, status = "success", solidHeader = TRUE,
                 title = "Box Plot :",
                 plotOutput(outputId = "boxplot")
+              ),
+              box(
+                width = 6, status = "success", solidHeader = TRUE,
+                title = "Box V2 :",                      
+                tags$head(
+                        # style for the tooltip with an arrow (http://www.cssarrowplease.com/)
+                        tags$style("
+               .arrow_box {
+                    position: absolute;
+                  pointer-events: none;
+                  z-index: 100;
+                  white-space: nowrap;
+                  background: CornflowerBlue;
+                  color: white;
+                  font-size: 13px;
+                  border: 1px solid;
+                  border-color: CornflowerBlue;
+                  border-radius: 1px;
+               }
+               .arrow_box:after, .arrow_box:before {
+                  right: 100%;
+                  top: 50%;
+                  border: solid transparent;
+                  content: ' ';
+                  height: 0;
+                  width: 0;
+                  position: absolute;
+                  pointer-events: none;
+               }
+               .arrow_box:after {
+                  border-color: rgba(136,183,213,0);
+                  border-right-color: CornflowerBlue;
+                  border-width: 4px;
+                  margin-top: -4px;
+               }
+               .arrow_box:before {
+                  border-color: rgba(194,225,245,0);
+                  border-right-color: CornflowerBlue;
+                  border-width: 10px;
+                  margin-top: -10px;
+               }")
+                      ),
+                      div(
+                        style = "position:relative",
+                        plotlyOutput("myplot"),
+                        uiOutput("hover_info")
+                      )
               ),
               box(
                 width = 6, status = "success", solidHeader = TRUE,
@@ -365,52 +293,8 @@ ui1 <- dashboardPage(skin = "green",
 
       )
      
-      )),
-      tabItem("box_v2",
-              tags$head(
-                # style for the tooltip with an arrow (http://www.cssarrowplease.com/)
-                tags$style("
-               .arrow_box {
-                    position: absolute;
-                  pointer-events: none;
-                  z-index: 100;
-                  white-space: nowrap;
-                  background: CornflowerBlue;
-                  color: white;
-                  font-size: 13px;
-                  border: 1px solid;
-                  border-color: CornflowerBlue;
-                  border-radius: 1px;
-               }
-               .arrow_box:after, .arrow_box:before {
-                  right: 100%;
-                  top: 50%;
-                  border: solid transparent;
-                  content: ' ';
-                  height: 0;
-                  width: 0;
-                  position: absolute;
-                  pointer-events: none;
-               }
-               .arrow_box:after {
-                  border-color: rgba(136,183,213,0);
-                  border-right-color: CornflowerBlue;
-                  border-width: 4px;
-                  margin-top: -4px;
-               }
-               .arrow_box:before {
-                  border-color: rgba(194,225,245,0);
-                  border-right-color: CornflowerBlue;
-                  border-width: 10px;
-                  margin-top: -10px;
-               }")
-              ),
-              div(
-                style = "position:relative",
-                plotlyOutput("myplot"),
-                uiOutput("hover_info")
-              )
-      )
+      ))
+      
       
       )
     )
@@ -587,7 +471,7 @@ server <- function(input, output) {
       #yy <- sapply(data$Survived, unclass) 
       plot_ly(dataset, 
               type = "box", 
-              x=input$cat1,y = ~dataset[[input$cat1]], 
+              x=input$cat1,y = dataset[[input$cat1]], 
               #text = paste0("<b> group: </b>", dataset$Age, "<br/>",
               #"<b> sample: </b>", dataset$Survived, "<br/>"),
               hoverinfo = "y") %>%
