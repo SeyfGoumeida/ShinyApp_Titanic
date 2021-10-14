@@ -158,7 +158,9 @@ ui1 <- dashboardPage(skin = "green",
   dashboardHeader(title = "MINI PROJET TITANIC"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"),badgeLabel = "load data", badgeColor = "blue"),
+      menuItem("",badgeLabel = "load data", badgeColor = "blue"),
+      fileInput("file1", "Choose input data"),
+      menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"), badgeColor = "blue"),
       menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
       menuItem("Analyse Bidimensionnelle", tabName = "Analyse_Bidimensionnelle", icon = icon("dashboard")),
       menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard"))
@@ -198,14 +200,7 @@ ui1 <- dashboardPage(skin = "green",
                 title = "Data Visualization :",
                 
               tabsetPanel(
-                tabPanel("Loading & Visualization", 
-                         
-              box(
-                width = 12, status = "success", solidHeader = TRUE,
-                title = "Loading :",
-                fileInput("file1", "Choose input data")     
-              )
-              ,
+                tabPanel("Visualization", 
               box(
                 width = 12, status = "success", solidHeader = TRUE,
                 title = "Visualization :",
