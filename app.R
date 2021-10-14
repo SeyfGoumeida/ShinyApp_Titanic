@@ -190,21 +190,30 @@ ui1 <- dashboardPage(
       tabItem("rawdata",
               box(
                 width = 12, status = "info", solidHeader = TRUE,
-                title = "Data Loading :",
-                HTML(
-                  paste("<h4>Upload you CSV file </h4>"),
-                ),
-                fileInput("file1", "Choose input data")     
-              ),
+                title = "Data Visualization :",
+                
+              tabsetPanel(
+                tabPanel("Loading & Visualization", 
+                         
               box(
                 width = 12, status = "info", solidHeader = TRUE,
-                title = "Data Visualization :",
-                DT::dataTableOutput("mytable3")   
-              ),
+                title = "Loading :",
+                fileInput("file1", "Choose input data")     
+              )
+              ,
               box(
-                title = "Data Summary :",
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Visualization :",
+                DT::dataTableOutput("mytable3")   
+              )
+              ),tabPanel("Summary", 
+              box(
+                title = "Summary :",
                 width = 12, status = "info", solidHeader = TRUE,
                 verbatimTextOutput("summary")
+              )
+              )
+              )
               )
               
       ),
@@ -266,8 +275,13 @@ ui1 <- dashboardPage(
       ),
       tabItem("Clustering",
               box(
-                  width = 12, status = "info", solidHeader = TRUE,
-                  title = "KNN :",
+                width = 12, status = "info", solidHeader = TRUE,
+                title = "Clustering :",
+              
+              tabsetPanel(
+                tabPanel("KNN", 
+                
+              
                 box(width = 7, status = "info", solidHeader = TRUE,
                     dataTableOutput('confusionMatrix'),
                     ),
@@ -280,25 +294,21 @@ ui1 <- dashboardPage(
                                 value = 5),
                     valueBoxOutput("KNNAccuracy"))
                 
-              ),
-              box(
-              width = 12, status = "info", solidHeader = TRUE,
-              title = "LR :",
-              box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('LR')),
-              box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("lrAccuracy"))
+              ),tabPanel("LR", 
+
+                    box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('LR')),
+                    box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("lrAccuracy"))
                   )
 
-              ,
-              box(
-                   width = 12, status = "info", solidHeader = TRUE,
-                  title = "SVM :",
+              ,tabPanel("SVM", 
+
+             
                    box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('SVM')),
                    box(width = 5, status = "info", solidHeader = TRUE,uiOutput("kernel"),valueBoxOutput("SvmAccuracy"))
                  )
-              ,
-               box(
-                  width = 12, status = "info", solidHeader = TRUE,
-                  title = " Réseaux de neurones :",
+              ,tabPanel("ANN", 
+
+               
                   box(width = 7, status = "info", solidHeader = TRUE, dataTableOutput('ANN')),
                   box(width = 5, status = "info", solidHeader = TRUE, 
                       sliderInput("size",
@@ -311,7 +321,7 @@ ui1 <- dashboardPage(
 
       )
      
-      )
+      )))
     )
   )
 #------------------------------------------------------------------------------------------------------------
@@ -375,7 +385,10 @@ server <- function(input, output) {
     })
     #----------------------DATASET------------------------------------------
     output$mytable3 <- DT::renderDataTable({
-        DT::datatable(myData())
+        DT::datatable(myData(),
+                      options = list(pageLength = 6, autoWidth = TRUE)
+        )
+      
         
     })
     #----------------------BOXPLOT------------------------------------------
