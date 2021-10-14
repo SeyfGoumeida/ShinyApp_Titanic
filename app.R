@@ -23,6 +23,7 @@ library(dplyr)
 library(shinydashboard)
 library(bubbles)        # devtools::install_github("jcheng5/bubbles")
 source("bloomfilter.R")
+library(shinythemes)
 
 #install.packages(c("shiny", "dplyr", "htmlwidgets", "digest", "bit"))
 #devtools::install_github("rstudio/shinydashboard")
@@ -153,7 +154,7 @@ ui <- fluidPage(
             
         ))
 )
-ui1 <- dashboardPage(
+ui1 <- dashboardPage(skin = "green",
   dashboardHeader(title = "MINI PROJET TITANIC"),
   dashboardSidebar(
     sidebarMenu(
@@ -167,6 +168,10 @@ ui1 <- dashboardPage(
     )
   ),
   dashboardBody(
+    ### changing theme
+    # shinyDashboardThemes(
+    #   theme = "blue_gradient"
+    # ),
     tabItems(
       tabItem("dashboard",
               fluidRow(
@@ -176,12 +181,12 @@ ui1 <- dashboardPage(
               ),
               fluidRow(
                 box(
-                  width = 8, status = "info", solidHeader = TRUE,
+                  width = 8, status = "success", solidHeader = TRUE,
                   title = "Popularity by package (last 5 min)",
                   bubblesOutput("packagePlot", width = "100%", height = 600)
                 ),
                 box(
-                  width = 4, status = "info",
+                  width = 4, status = "success",
                   title = "Top packages (last 5 min)",
                   tableOutput("packageTable")
                 )
@@ -189,27 +194,27 @@ ui1 <- dashboardPage(
               ),
       tabItem("rawdata",
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Data Visualization :",
                 
               tabsetPanel(
                 tabPanel("Loading & Visualization", 
                          
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Loading :",
                 fileInput("file1", "Choose input data")     
               )
               ,
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Visualization :",
                 DT::dataTableOutput("mytable3")   
               )
               ),tabPanel("Summary", 
               box(
                 title = "Summary :",
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 verbatimTextOutput("summary")
               )
               )
@@ -220,22 +225,22 @@ ui1 <- dashboardPage(
       tabItem("Analyse_Unidimensionnelle",
               
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Choose Your Variable :",
                 uiOutput("category1")
               ),
               box(
-                width = 4, status = "danger", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Box Plot :",
                 plotOutput(outputId = "boxplot")
               ),
               box(
-                width = 4, status = "success", solidHeader = TRUE,
+                width = 6, status = "success", solidHeader = TRUE,
                 title = "Pie :",
                 plotOutput(outputId = "Pie")
               ),
               box(
-                width = 4, status = "primary", solidHeader = TRUE,
+                width = 6, status = "success", solidHeader = TRUE,
                 title = "Histogram :",
                 plotOutput(outputId = "HistogramPW"),
                
@@ -249,16 +254,16 @@ ui1 <- dashboardPage(
       ),
       tabItem("Analyse_Bidimensionnelle",
               box(
-                width = 6, status = "info", solidHeader = TRUE,
+                width = 6, status = "success", solidHeader = TRUE,color="red",
                 title = "Nuage :",
                 plotOutput("ScatterPlot"),
                 box(
-                  width = 6, status = "info", solidHeader = TRUE,
+                  width = 6, status = "success", solidHeader = TRUE,
                   title = "Choose first Variable :",
                   uiOutput("category2")
                 ),
                 box(
-                  width = 6, status = "info", solidHeader = TRUE,
+                  width = 6, status = "success", solidHeader = TRUE,
                   title = "Choose second Variable :",
                   uiOutput("category3")
                 )
@@ -266,7 +271,7 @@ ui1 <- dashboardPage(
               ),
              
               box(
-                width = 6, status = "info", solidHeader = TRUE,
+                width = 6, status = "success", solidHeader = TRUE,
                 title = "Coorelation :",
                 plotOutput(outputId = "Coorelation")
                 
@@ -275,18 +280,18 @@ ui1 <- dashboardPage(
       ),
       tabItem("Clustering",
               box(
-                width = 12, status = "info", solidHeader = TRUE,
+                width = 12, status = "success", solidHeader = TRUE,
                 title = "Clustering :",
               
               tabsetPanel(
                 tabPanel("KNN", 
                 
               
-                box(width = 7, status = "info", solidHeader = TRUE,
+                box(width = 7, status = "success", solidHeader = TRUE,
                     dataTableOutput('confusionMatrix'),
                     ),
                 
-                box(width = 5, status = "info", solidHeader = TRUE,
+                box(width = 5, status = "success", solidHeader = TRUE,
                     sliderInput("k",
                                 "Number of neighbors",
                                 min = 1,
@@ -296,21 +301,21 @@ ui1 <- dashboardPage(
                 
               ),tabPanel("LR", 
 
-                    box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('LR')),
-                    box(width = 5, status = "info", solidHeader = TRUE,valueBoxOutput("lrAccuracy"))
+                    box(width = 7, status = "success", solidHeader = TRUE,dataTableOutput('LR')),
+                    box(width = 5, status = "success", solidHeader = TRUE,valueBoxOutput("lrAccuracy"))
                   )
 
               ,tabPanel("SVM", 
 
              
-                   box(width = 7, status = "info", solidHeader = TRUE,dataTableOutput('SVM')),
-                   box(width = 5, status = "info", solidHeader = TRUE,uiOutput("kernel"),valueBoxOutput("SvmAccuracy"))
+                   box(width = 7, status = "success", solidHeader = TRUE,dataTableOutput('SVM')),
+                   box(width = 5, status = "success", solidHeader = TRUE,uiOutput("kernel"),valueBoxOutput("SvmAccuracy"))
                  )
               ,tabPanel("ANN", 
 
                
-                  box(width = 7, status = "info", solidHeader = TRUE, dataTableOutput('ANN')),
-                  box(width = 5, status = "info", solidHeader = TRUE, 
+                  box(width = 7, status = "success", solidHeader = TRUE, dataTableOutput('ANN')),
+                  box(width = 5, status = "success", solidHeader = TRUE, 
                       sliderInput("size",
                                   "Size of neurons",
                                   min = 1,
@@ -403,10 +408,10 @@ server <- function(input, output) {
       boxplot(pw,
                 at = c(1),
                 names = c("Petal.W"),
-                col = c("red"),
+                col = c("#3CB371"),
                 main = input$cat1,
                 xlab = input$cat1,las = 1,
-                border = "brown",
+                border = "black",
                 notch = TRUE,
                 horizontal = TRUE
       )
@@ -418,14 +423,14 @@ server <- function(input, output) {
       pw = myData()[[input$cat1]]
       if(class(pw) != "integer" & class(pw) != "numeric") { 
         barplot(table(pw), 
-                col = "blue")}
+                col = "light-blue")}
       
       else {
       
       bins <- seq(min(pw), max(pw), length.out = input$bins + 1)
       hist(pw,
            breaks = bins,
-           col = "blue",
+           col = "#3CB371",
            main = input$cat1,
            xlab = input$cat1,
            ylab = "Number ")
@@ -688,7 +693,7 @@ server <- function(input, output) {
 
     
     table.settings <- list(searching = F, pageLength = 5, bLengthChange = F,
-                           bPaginate = F, bInfo = F )
+                           bPaginate = F, bsuccess = F )
 
     
     
@@ -735,6 +740,75 @@ fte_theme <- function() {
         # Plot margins
         theme(plot.margin = unit(c(0.35, 0.2, 0.3, 0.35), "cm"))
 }
+
+
+#______________________theme___________________________
+# 
+# create_theme(
+#   theme = "default",
+#   bs_vars_navbar(
+#     default_bg = "#3f2d54",
+#     default_color = "#FFFFFF",
+#     default_link_color = "#FFFFFF",
+#     default_link_active_color = "#FFFFFF"
+#   ),
+#   bs_vars_color(
+#     gray_base = "#354e5c",
+#     brand_primary = "#75b8d1",
+#     brand_success = "#c9d175",
+#     brand_info = "#758bd1",
+#     brand_warning = "#d1ab75",
+#     brand_danger = "#d175b8"
+#   ),
+#   bs_vars_state(
+#     success_text = "#FFF",
+#     success_bg = "#c9d175",
+#     success_border = "#c9d175",
+#     info_text = "#FFF",
+#     info_bg = "#3f2d54",
+#     info_border = "#3f2d54",
+#     danger_text = "#FFF",
+#     danger_bg = "#d175b8",
+#     danger_border = "#d175b8"
+#   ),
+#   bs_vars_wells(
+#     bg = "#FFF",
+#     border = "#3f2d54"
+#   ),
+#   output_file = "www/mytheme.css"
+# )
+# 
+# 
+# mytheme <- create_theme(
+#   bs4dash_vars(
+#     navbar_light_color = "#bec5cb",
+#     navbar_light_active_color = "#FFF",
+#     navbar_light_hover_color = "#FFF"
+#   ),
+#   bs4dash_yiq(
+#     contrasted_threshold = 10,
+#     text_dark = "#FFF", 
+#     text_light = "#272c30"
+#   ),
+#   bs4dash_layout(
+#     main_bg = "#353c42"
+#   ),
+#   bs4dash_sidebar_light(
+#     bg = "#272c30", 
+#     color = "#bec5cb",
+#     hover_color = "#FFF",
+#     submenu_bg = "#272c30", 
+#     submenu_color = "#FFF", 
+#     submenu_hover_color = "#FFF"
+#   ),
+#   bs4dash_status(
+#     primary = "#5E81AC", danger = "#BF616A", light = "#272c30"
+#   ),
+#   bs4dash_color(
+#     gray_900 = "#FFF"
+#   )
+# )
+
 shinyApp(ui1, server)
 
 
