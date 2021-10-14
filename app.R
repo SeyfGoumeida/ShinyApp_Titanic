@@ -25,6 +25,9 @@ library(bubbles)        # devtools::install_github("jcheng5/bubbles")
 source("bloomfilter.R")
 library(shinythemes)
 library(fresh)
+library(plotly)
+library(shiny)
+library(htmlwidgets)
 # Create the theme
 mytheme <- create_theme(
   # adminlte_color(
@@ -51,6 +54,26 @@ Lr_accuracy <<- 1
 Knn_accuracy <<- 1
 Svm_accuracy <<- 1
 NN_accuracy <<- 1
+
+
+# Plotly on hover event ----
+addHoverBehavior <- c(
+  "function(el, x){",
+  "  el.on('plotly_hover', function(data) {",
+  "    if(data.points.length==1){",
+  "      $('.hovertext').hide();",
+  "      Shiny.setInputValue('hovering', true);",
+  "      var d = data.points[0];",
+  "      Shiny.setInputValue('left_px', d.xaxis.d2p(d.x) + d.xaxis._offset);",
+  "      Shiny.setInputValue('top_px', d.yaxis.l2p(d.y) + d.yaxis._offset);",
+  "      Shiny.setInputValue('dy', d.y);",
+  "      Shiny.setInputValue('dtext', d.text);",
+  "    }",
+  "  });",
+  "  el.on('plotly_unhover', function(data) {",
+  "    Shiny.setInputValue('hovering', false);",
+  "  });",
+  "}")
 
 
 ui <- fluidPage(
@@ -180,7 +203,9 @@ ui1 <- dashboardPage(skin = "green",
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"), badgeColor = "blue"),
       menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
       menuItem("Analyse Bidimensionnelle", tabName = "Analyse_Bidimensionnelle", icon = icon("dashboard")),
-      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard"))
+      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard")),
+      menuItem("box_v2", tabName = "box_v2", icon = icon("dashboard"))
+      
 
       #ggplot
       
@@ -340,7 +365,54 @@ ui1 <- dashboardPage(skin = "green",
 
       )
      
-      )))
+      )),
+      tabItem("box_v2",
+              tags$head(
+                # style for the tooltip with an arrow (http://www.cssarrowplease.com/)
+                tags$style("
+               .arrow_box {
+                    position: absolute;
+                  pointer-events: none;
+                  z-index: 100;
+                  white-space: nowrap;
+                  background: CornflowerBlue;
+                  color: white;
+                  font-size: 13px;
+                  border: 1px solid;
+                  border-color: CornflowerBlue;
+                  border-radius: 1px;
+               }
+               .arrow_box:after, .arrow_box:before {
+                  right: 100%;
+                  top: 50%;
+                  border: solid transparent;
+                  content: ' ';
+                  height: 0;
+                  width: 0;
+                  position: absolute;
+                  pointer-events: none;
+               }
+               .arrow_box:after {
+                  border-color: rgba(136,183,213,0);
+                  border-right-color: CornflowerBlue;
+                  border-width: 4px;
+                  margin-top: -4px;
+               }
+               .arrow_box:before {
+                  border-color: rgba(194,225,245,0);
+                  border-right-color: CornflowerBlue;
+                  border-width: 10px;
+                  margin-top: -10px;
+               }")
+              ),
+              div(
+                style = "position:relative",
+                plotlyOutput("myplot"),
+                uiOutput("hover_info")
+              )
+      )
+      
+      )
     )
   )
 #------------------------------------------------------------------------------------------------------------
@@ -505,6 +577,33 @@ server <- function(input, output) {
         p <- ggplot(myData(), aes(x = myData()[[input$cat1]], fill = Survived )) + geom_bar(position = "fill")
         p + labs(x = input$cat1)
          
+    })
+    #-------------------------------------------------------------------------------------
+    #----------------------------------BoxPlot v2-----------------------------------------
+    output$myplot <- renderPlotly({
+      dataset <- myData()
+      
+      #xx <- dataset[,-2]
+      #yy <- sapply(data$Survived, unclass) 
+      plot_ly(dataset, 
+              type = "box", 
+              x=input$cat1,y = ~dataset[[input$cat1]], 
+              #text = paste0("<b> group: </b>", dataset$Age, "<br/>",
+              #"<b> sample: </b>", dataset$Survived, "<br/>"),
+              hoverinfo = "y") %>%
+        onRender(addHoverBehavior)
+    })
+    output$hover_info <- renderUI({
+      if(isTRUE(input[["hovering"]])){
+        style <- paste0("left: ", input[["left_px"]] + 4 + 5, "px;", # 4 = border-width after
+                        "top: ", input[["top_px"]] - 24 - 2 - 1, "px;") # 24 = line-height/2 * number of lines; 2 = padding; 1 = border thickness
+        div(
+          class = "arrow_box", style = style,
+          p(HTML(input$dtext, 
+                 "<b> value: </b>", formatC(input$dy)), 
+            style="margin: 0; padding: 2px; line-height: 16px;")
+        )
+      }
     })
     
     #----------------------------------LOGISTIC REGRESSION--------------------------------
