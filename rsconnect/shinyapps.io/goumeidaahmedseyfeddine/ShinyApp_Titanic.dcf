@@ -5,9 +5,9 @@ account: goumeidaahmedseyfeddine
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4836242
-bundleId: 5138828
+bundleId: 5138913
 url: https://goumeidaahmedseyfeddine.shinyapps.io/ShinyApp_Titanic/
-when: 1634221855.39609
-lastSyncTime: 1634221855.39609
+when: 1634223308.08719
+lastSyncTime: 1634223308.08763
 asMultiple: FALSE
 asStatic: FALSE
