@@ -24,6 +24,23 @@ library(shinydashboard)
 library(bubbles)        # devtools::install_github("jcheng5/bubbles")
 source("bloomfilter.R")
 library(shinythemes)
+library(fresh)
+# Create the theme
+mytheme <- create_theme(
+  # adminlte_color(
+  #   light_blue = "#434C5E"
+  # ),
+  adminlte_sidebar(
+    dark_bg = "#042e29",
+    dark_hover_bg = "#095e54",
+    dark_color = "#FFF"
+  ),
+  adminlte_global(
+    content_bg = "#095e54",
+    # box_bg = "#D8DEE9", 
+    # info_box_bg = "#D8DEE9"
+  )
+)
 
 #install.packages(c("shiny", "dplyr", "htmlwidgets", "digest", "bit"))
 #devtools::install_github("rstudio/shinydashboard")
@@ -174,6 +191,8 @@ ui1 <- dashboardPage(skin = "green",
     # shinyDashboardThemes(
     #   theme = "blue_gradient"
     # ),
+    use_theme(mytheme), # <-- use the theme
+    
     tabItems(
       tabItem("dashboard",
               fluidRow(
