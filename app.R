@@ -18,10 +18,10 @@ library(ROSE)
 library(e1071)
 library(nnet)
 library(shiny)
-library(shinySignals)   # devtools::install_github("hadley/shinySignals")
+library(shinySignals)    #install.packages("devtools") and then devtools::install_github("hadley/shinySignals")
 library(dplyr)
 library(shinydashboard)
-library(bubbles)        # devtools::install_github("jcheng5/bubbles")
+library(bubbles)        # devtools::install_github("jcheng5/bubbles") 
 source("bloomfilter.R")
 library(shinythemes)
 library(fresh)
@@ -392,8 +392,8 @@ server <- function(input, output) {
     output$HistogramPW <- renderPlot({
       pw = myData()[[input$cat1]]
       if(class(pw) != "integer" & class(pw) != "numeric") { 
-        barplot(table(pw), 
-                col = "light-blue")}
+        barplot(table(pw) 
+                )}
       
       else {
       
