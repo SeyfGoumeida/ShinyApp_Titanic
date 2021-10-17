@@ -28,6 +28,8 @@ library(fresh)
 library(plotly)
 library(shiny)
 library(htmlwidgets)
+library(ggplot2)
+
 # Create the theme
 mytheme <- create_theme(
   # adminlte_color(
@@ -415,8 +417,29 @@ server <- function(input, output) {
     
     #-------------------------Pie--------------------------------------
     output$Pie <- renderPlot({
-        pie(table(myData()[input$cat1]), labels = names(table(myData()[input$cat1])), 
-            main = input$cat1, col=c())    
+      pw = table(myData()[[input$cat1]])
+      df<-as.data.frame(pw) 
+      data <- data.frame(
+        class = df[["Var1"]],
+        value = df[["Freq"]]
+        
+      )
+      data <- data %>% 
+        arrange(desc(class)) %>%
+        mutate(prop = value / sum(data$value) *100) %>%
+        mutate(ypos = cumsum(prop)- 0.5*prop )
+      
+      # Basic piechart
+      ggplot(data, aes(x="", y=prop, fill=class)) +
+        geom_bar(stat="identity", width=1, color="white") +
+        coord_polar("y", start=0) +
+        theme_void() + 
+        theme(legend.position="none") +
+        
+        geom_text(aes(y = ypos, label = class), color = "white", size=6) +
+        scale_fill_brewer(palette="Set1")
+     #pie(table(myData()[input$cat1]), labels = names(table(myData()[input$cat1])), 
+      #   main = input$cat1, col=c())    
     })
     
     #-----------------------NUAGE---------------------------------------
