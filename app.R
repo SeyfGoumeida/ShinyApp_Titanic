@@ -87,7 +87,9 @@ ui1 <- dashboardPage(skin = "green",
       menuItem("Data Visualization", tabName = "rawdata", icon = icon("eye"), badgeColor = "blue"),
       menuItem("Analyse Unidimensionnelle", tabName = "Analyse_Unidimensionnelle", icon = icon("dashboard")),
       menuItem("Analyse Bidimensionnelle", tabName = "Analyse_Bidimensionnelle", icon = icon("dashboard")),
-      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard"))
+      menuItem("Clustering", tabName = "Clustering", icon = icon("dashboard")),
+      menuItem("Rapport", tabName = "Rapport", icon = icon("dashboard"))
+      
 
 
       #ggplot
@@ -296,11 +298,15 @@ ui1 <- dashboardPage(skin = "green",
       )
      
       ))
-      
+      ,
+      tabItem("Rapport",
+              box(width = 12, status = "success", solidHeader = TRUE, 
+                  htmlOutput("rapport")
+              )
       
       )
     )
-  )
+  ))
 #------------------------------------------------------------------------------------------------------------
 server <- function(input, output) {
     
@@ -714,9 +720,47 @@ server <- function(input, output) {
     
     table.settings <- list(searching = F, pageLength = 5, bLengthChange = F,
                            bPaginate = F, bsuccess = F )
+    output$rapport<- renderUI({
+      HTML(
+        paste("<h2>Explication des variables : </h2>"),
+        paste("<h3> 1.	Explication du jeu de données :  </h3>"),
+        paste("<h4> La base de données Titanic est une base de données constituée à partir des données collectées des passagers qui sont montés au bord du célèbre paquebot transatlantique britannique Titanic. Le but dans ce jeu de données est de prédire, à partir des différentes variables, si la personne a survécu ou non.</h4>" ),
+        
+        paste("<h3>---------------------------------------------</h3>"),
+        paste("<h3>  2.	Visualisation des données : </h3>"),
+        paste("<h4> Nous remarquons en premier lieu que les variables sont de différentes types. Nous y trouvons des données numériques, qui sont discrètes (« Age », « Sex », etc.) ou continues « Fare », et des données catégorielles (« Survived »). L’onglet Summary nous donne une idée sur les différentes mesures statistique de chaque variable : la médiane, l’écart-type, etc.  </h4>"),
+        paste("<h3>---------------------------------------------</h3>"),
+        paste("<h3>  3.	analyse unidimensionnelle : </h3>"),
+        paste("<h4>  Pour l’analyse unidimensionnelle, nous avons, pour les variables à valeurs numériques, calculer le Box Plot, Le Box Plot Interactif, le Pie et l’histogramme. Pour la variable catégorielle « Survived », nous avons tracé un Barplot à la place de l’histogramme. D’après l’analyse des différents graphes, nous pouvons conclure que :</h4>"),
+        paste("<h4> a.	L’âge de la plupart des passagers entre dans la catégorie 1, suivie par la catégorie 2 ; </h4>"),
+        paste("<h4> b.	Nous avons plus d’hommes que de femmes ; </h4>"),
+        paste("<h4> c.	La majorité des passagers n’ont pas survécu ; </h4>"),
+        paste("<h4> d.	Le prix des billets tournaient autour de 14.45 Unité (médiane), avec comme prix max 512.3 Unité ; </h4>"),
+        paste("<h4> e.	La majorité des passagers ont embarqué par la porte 0 ; </h4>"),
+        paste("<h4> f.	La majorité des passagers étaient en class 3 ; </h4>"),
+        paste("<h4> g.	La majorité des passagers n’étaient pas accompagnés par un membre de leur famille. </h4>"),
+        paste("<h3>---------------------------------------------</h3>"),
+        paste("<h3>  4.	Analyse Bidimensionnelle : </h3>"),
+        paste("<h4> Bien que nécessaire, l’analyse unidimensionnelle nous ne donne pas d’informations sur la relation qui existent entre les différentes variables. Pour cela, nous avons utilisé le nuage de point, entre deux variables ainsi que la table de corrélation. Nous avons pu conclure que : </h4>"),
+        paste("<h4> a.	Il existe une forte corrélation entre la variable Sex et Survived. Une femme a en effet plus de chances de survivre qu’un homme (74% vs 18%) ;</h4>"),
+        paste("<h4>       b.	Les passagers dont l’âge est dans la catégorie 4 ont beaucoup moins de chances de survivre, contrairement aux passagers dont l’âge est dans la catégorie 1 ;</h4>"),
+        paste("<h4>       c.	Il existe une faible corrélation entre la porte d’embarquement et la variable Survived ;</h4>"),
+        paste("<h4>       d.	Il existe une forte corrélation entre la variable Survived et la classe. En effet, ceux qui sont en classe 3 ont moins chances de survivre que ceux qui sont en classe 1.  </h4>"),
+        paste("<h4>       e.	Il existe une forte corrélation entre la varibale Title et Survived. En effet, nous remarquons que les passagers de Title 3 ont plus de chances de survivre et que les passagers de Titre 1 ont moins de chances de survivre ;</h4>"),
+        paste("<h4>       f.	Que les passagers accompagnés par au moins un membre de leur famille ont plus de risque de se noyer.</h4>"),
+        paste("<h3>---------------------------------------------</h3>"),
+        paste("<h3> 5.	Clustering: </h3>"),
+        paste("<h4> En se basant sur les différentes variables, en en convertissant la variable catégorielle Survived en une variable numérique discrète, nous divisons notre base de données en deux sous-ensembles : entraînement et test. Nous utilisons 4 algorithmes de Clustering : </h4>"),
+        paste("<h4> a.	KNN : le meilleur résultat est obtenu en choisissant 14 voisons avec un taux de bonne prédiction de 65.73% ;</h4>"),
+        paste("<h4>       b.	Logistic Regression : un taux de bonne prédiction 79.91% ;</h4>"),
+        paste("<h4>       c.	SVM : le meilleur résultat a été obtenu avec le kernel linear avec un taux de bonne prédiction de 81.36% ;</h4>"),
+        paste("<h4>       d.	Réseaux de Neurones : le meilleur résultat obtenu avec 74 neurones dans la couche cachée avec un taux de bonne prédiction d’environ 85.00%.</h4>"),
+        paste("<h4>       Les meilleurs algorithmes sont le SVM et le Réseau de Neurones.  </h4>")
+        
+        
+      )
+    })
 
-    
-    
 }
 
 #----------------------------------THEME--------------------------------------
